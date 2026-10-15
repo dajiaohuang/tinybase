@@ -65,6 +65,24 @@ describe('Sets', () => {
     expect(metrics.getMetric('m1')).toBeUndefined();
   });
 
+  test('avg after replacing a single extreme value', () => {
+    store.setCell('t1', 'r1', 'c1', 1e308);
+    metrics.setMetricDefinition('m1', 't1', 'avg', 'c1');
+    const changed = vi.fn();
+    metrics.addMetricListener('m1', changed);
+    for (const value of [-1e308, 1, 1e308, -1e308]) {
+      changed.mockClear();
+      store.setCell('t1', 'r1', 'c1', value);
+      expect(metrics.getMetric('m1')).toBe(value);
+      expect(changed).toHaveBeenCalledTimes(1);
+      expect(changed.mock.calls[0][2]).toBe(value);
+    }
+    store.setCell('t1', 'r2', 'c1', 0);
+    expect(metrics.getMetric('m1')).toBe(-5e307);
+    store.delRow('t1', 'r2');
+    expect(metrics.getMetric('m1')).toBe(-1e308);
+  });
+
   test('avg after replacing all rows in a transaction', () => {
     store.setCell('t1', 'r1', 'c1', 1);
     metrics.setMetricDefinition('m1', 't1', 'avg', 'c1');

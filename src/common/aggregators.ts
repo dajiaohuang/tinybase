@@ -34,7 +34,7 @@ export const numericAggregators: IdMap<Aggregators<number, number>> = mapNew([
       (metric: number, remove: number, length: number): number | undefined =>
         length > 1 ? metric + (metric - remove) / (length - 1) : undefined,
       (metric: number, add: number, remove: number, length: number): number =>
-        metric + (add - remove) / length,
+        length == 1 ? add : metric + (add - remove) / length,
     ],
   ],
   [

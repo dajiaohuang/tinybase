@@ -869,6 +869,18 @@ describe('Queries tables', () => {
   });
 
   describe('Groups', () => {
+    test('avg after replacing a single extreme value', () => {
+      store.setCell('t1', 'r1', 'amount', 1e308);
+      queries.setQueryDefinition('q1', 't1', ({select, group}) => {
+        select('amount');
+        group('amount', 'avg');
+      });
+      for (const amount of [-1e308, 1, 1e308, -1e308]) {
+        store.setCell('t1', 'r1', 'amount', amount);
+        expect(queries.getResultTable('q1')).toEqual({0: {amount}});
+      }
+    });
+
     test('all columns rebuild groups when the column set changes', () => {
       store.setTable('t1', {
         r1: {kind: 'same', amount: 1},
